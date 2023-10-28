@@ -28,6 +28,9 @@ TEST_REQUIRES_ROOT_PACKAGES=$(filter \
     done | sort -u) \
     )
 
+GO_LDFLAGS?=
+GO_TEST_FLAGS?=
+
 .PHONY: clean all lint build test binaries
 .DEFAULT: default
 
@@ -53,11 +56,11 @@ build:
 
 test:
 	@echo "+ $@"
-	@go test -mod=vendor $(PACKAGES)
+	@go test $(GO_TEST_FLAGS) -mod=vendor $(PACKAGES)
 
 root-test:
 	@echo "+ $@"
-	@go test -exec sudo ${TEST_REQUIRES_ROOT_PACKAGES} -test.root
+	@go test $(GO_TEST_FLAGS) -exec sudo ${TEST_REQUIRES_ROOT_PACKAGES} -test.root
 
 test-compile:
 	@echo "+ $@"

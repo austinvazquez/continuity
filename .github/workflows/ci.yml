@@ -44,6 +44,9 @@ jobs:
       matrix:
         os: [ubuntu-22.04, macos-12, windows-2019, windows-2022]
 
+    env:
+      OS: ${{ matrix.os }}
+
     steps:
     - name: Set up Go
       uses: actions/setup-go@v3
@@ -77,14 +80,26 @@ jobs:
 
     - name: Tests
       run: |
-        make test
+        make test GO_TEST_FLAGS="-race -covermode=atomic -coverprofile=coverage.out"
       working-directory: src/github.com/containerd/continuity
 
     - name: Root Tests
       if: ${{ !startsWith(matrix.os, 'windows') }}
       run: |
-        make root-test
+        make root-test GO_TEST_FLAGS="-race -covermode=atomic -coverprofile=root-coverage.out"
       working-directory: src/github.com/containerd/continuity
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        env_vars: OS,GO_VERSION
+        fail_ci_if_error: true
+        files: ./coverage.out, ./root-coverage.out
+        flags: unittests
+        verbose: true
+        working-directory: src/github.com/containerd/continuity
+
   cross:
     name: Cross-compile
     runs-on: ubuntu-22.04
